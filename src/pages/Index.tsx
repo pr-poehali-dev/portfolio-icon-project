@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import PortfolioAdmin from '@/components/PortfolioAdmin';
 
 interface PortfolioItem {
   id: number;
@@ -22,7 +23,7 @@ interface Product {
   description: string;
 }
 
-const portfolioItems: PortfolioItem[] = [
+const defaultPortfolioItems: PortfolioItem[] = [
   {
     id: 1,
     title: "Премиум Дизайн",
@@ -86,13 +87,34 @@ const products: Product[] = [
 ];
 
 export default function Index() {
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>(defaultPortfolioItems);
   const [selectedWork, setSelectedWork] = useState<PortfolioItem | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  // Загрузка данных из localStorage при монтировании
+  useEffect(() => {
+    const saved = localStorage.getItem('portfolioData');
+    if (saved) {
+      try {
+        const parsedData = JSON.parse(saved);
+        if (Array.isArray(parsedData)) {
+          setPortfolioItems(parsedData);
+        }
+      } catch (error) {
+        console.log('Error parsing saved portfolio data:', error);
+      }
+    }
+  }, []);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     element?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  if (showAdmin) {
+    return <PortfolioAdmin />;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -109,9 +131,20 @@ export default function Index() {
               <button onClick={() => scrollToSection('about')} className="hover-gold">О мне</button>
               <button onClick={() => scrollToSection('contact')} className="hover-gold">Контакты</button>
             </div>
-            <Button className="bg-gradient-gold text-black hover:opacity-90">
-              Заказать
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowAdmin(!showAdmin)}
+                className="border-gold text-gold hover:bg-gold hover:text-black"
+              >
+                <Icon name="Settings" className="mr-2" size={16} />
+                Админ
+              </Button>
+              <Button className="bg-gradient-gold text-black hover:opacity-90">
+                Заказать
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
